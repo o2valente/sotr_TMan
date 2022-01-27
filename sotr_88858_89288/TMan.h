@@ -8,13 +8,13 @@ typedef struct TMan_task {
 
 
 /*initialisation of the framework*/
-void TMAN_Init (void);
+void TMAN_Init (int);
 
 /*terminate the framework*/
 void TMAN_Close (void);
 
 /*Add a task to the framework*/
-void TMAN_TaskAdd (void);
+void TMAN_TaskAdd (char);
 
 /*Register attributes (e.g. period, phase, deadline, precedence
 constraints) for a task already added to the framework*/

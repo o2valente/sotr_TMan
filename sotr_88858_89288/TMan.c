@@ -13,10 +13,13 @@
 /* App includes */
 #include "../UART/uart.h"
 
+#define tsk_PRIORITY	( tskIDLE_PRIORITY + 1 )
 
 struct TMan_task tasks[6];
+int maxTasks;
+int taskIndex;
 
-void TMAN_Init () {
+void TMAN_Init (int numOfTasks) {
     
      // Init UART and redirect stdin/stdot/stderr to UART
     if(UartInit(configPERIPHERAL_CLOCK_HZ, 115200) != UART_SUCCESS) {
@@ -51,16 +54,36 @@ void TMAN_Init () {
     printf("Initializing the TMAN Framework \n\r");
     printf("*********************************************\n\r");
     
-    char *names[6] = {"A","B","C","D","E","F"};
-    for(int i=0; i<6; i++){
-        tasks[i].name = names[i];
-        tasks[i].deadline = 1; //TODO
-        tasks[i].period = 1; //TODO
-        tasks[i].phase = 1; //TODO
-    }
+    maxTasks = numOfTasks;
+    taskIndex = 0;
     
-    for(int i=0; i<6;i++){
-        printf("%s",tasks[i].name);
-    }
     
 }
+
+void TMAN_TaskAdd(char name){
+    if(taskIndex < maxTasks){
+        tasks[taskIndex].name = name;
+        xTaskCreate( pvBusyWait, ( const signed char * const ) name, configMINIMAL_STACK_SIZE, NULL, tsk_PRIORITY, NULL );
+        printf("Task %c created!", tasks[taskIndex].name);
+        taskIndex++;
+    }else{
+        printf("Task can not be created, max number %d of tasks created", maxTasks);
+    }
+}
+
+void pvBusyWait(void *pvParam){
+    uint8_t mesg[80];
+    int val = 0;
+    int result = 0;
+    
+   // for(;;){
+     //   TMAN_TaskWaitPeriod(args ?); // Add args if needed
+       // GET_TICKS
+       // print ?Task Name? and ?Ticks?
+       // for(i=0; i<IMAXCOUNT; i++)
+       // for(j=0; j<JMAXCOUNT; j++)
+       // do_some_computation_to_consume_time;
+       // OTHER_STUFF (if needed)
+}
+    
+
