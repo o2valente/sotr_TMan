@@ -51,9 +51,10 @@ int mainTMan( void *pvParam)
     
     TMAN_Init(6);
    
-    TMAN_TaskAdd('A');
+    TMAN_TaskAdd("A");
+    TMAN_TaskAdd("B");
     
-    TMAN_TaskRegisterAttributes('A',1,2,3);
+    TMAN_TaskRegisterAttributes("A",1,2,3);
         
     vTaskStartScheduler();
     

@@ -16,13 +16,18 @@
 /* App includes */
 #include "../UART/uart.h"
 
+/* Priorities of the demo application tasks (high numb. -> high prio.) */
 #define tsk_PRIORITY	( tskIDLE_PRIORITY + 1 )
 #define tics_PRIORITY	( tskIDLE_PRIORITY + 3 )
+
+#define TMan_PERIOD 10
 
 
 struct TMan_task tasks[6];
 int maxTasks;
 int taskIndex;
+TickType_t TMan_tick;
+
 
 void TMAN_Init (int numOfTasks) {
     
@@ -62,23 +67,25 @@ void TMAN_Init (int numOfTasks) {
     maxTasks = numOfTasks;
     taskIndex = 0;
     
+    printf("Creating getTicks Task\n\r");
     xTaskCreate ( TMAN_getTicks , ( const signed char * const ) "Get Tics", configMINIMAL_STACK_SIZE, NULL, tics_PRIORITY, NULL);
-    
+
     
 }
 
-void TMAN_TaskAdd(char name){
+void TMAN_TaskAdd(const char* name){
     if(taskIndex < maxTasks){
         tasks[taskIndex].name = name;
-        xTaskCreate( BusyWait, ( const signed char * const ) "Busy Wait", configMINIMAL_STACK_SIZE, NULL, tsk_PRIORITY, NULL );
+        xTaskCreate( BusyWait, ( const signed char * const ) name, configMINIMAL_STACK_SIZE,(void *) name, tsk_PRIORITY, NULL );
         printf("Task %c created!\n\r", tasks[taskIndex].name);
         taskIndex++;
+        
     }else{
         printf("Task can not be created, max number %d of tasks created\n\r", maxTasks);
     }
 }
 
-void TMAN_TaskRegisterAttributes (char name, int period, int phase, int deadline) {
+void TMAN_TaskRegisterAttributes (const char* name, int period, int phase, int deadline) {
     for (int i=0; i < maxTasks; i++){
         if(tasks[i].name == name){
             tasks[i].period = period;
@@ -95,15 +102,22 @@ void TMAN_getTicks(void *pvParams){
     TickType_t xLastWakeTime;
     xLastWakeTime = xTaskGetTickCount();
     for(;;){
-        vTaskDelayUntil( &xLastWakeTime, 5);
-        printf("Tics: %d\n", xLastWakeTime);
-    }
+        vTaskDelayUntil( &xLastWakeTime, TMan_PERIOD);
+        TMan_tick++; 
+    }   
 }
 
+void TMAN_Close(void){
+    vTaskEndScheduler();
+}
 
 void BusyWait(void *pvParams){
     uint8_t mesg[80];
-    printf("Busy Wait");
+    
+    for(;;){
+        TickType_t tic = xTaskGetTickCount();
+        printf("%s, %d\n\r",(const char*) pvParams, tic);
+    }
     
    // for(;;){
      //   TMAN_TaskWaitPeriod(args ?); // Add args if needed
