@@ -3,7 +3,7 @@ typedef struct TMan_task {
     int phase;
     int deadline;
     //precedence constrains (?))
-    char *name;
+    char name;
 }TMan_task;
 
 
@@ -18,7 +18,7 @@ void TMAN_TaskAdd (char);
 
 /*Register attributes (e.g. period, phase, deadline, precedence
 constraints) for a task already added to the framework*/
-void TMAN_TaskRegisterAttributes (void);
+void TMAN_TaskRegisterAttributes (char, int, int, int);
 
 /*Called by a task to signal the termination of an instance and wait for
 the next activation*/
@@ -28,3 +28,7 @@ void TMAN_TaskWaitPeriod (void);
 include at least the number of activations, but additional info (e.g. number of deadline misses)
 will be valued. */
 void TMAN_TaskStats (void);
+
+void TMAN_getTicks (void *pvParams);
+
+void BusyWait (void *pvParams);

@@ -46,12 +46,17 @@
 /*
  * Create the demo tasks then start the scheduler.
  */
-int mainTMan( void )
+int mainTMan( void *pvParam)
 {
     
     TMAN_Init(6);
    
     TMAN_TaskAdd('A');
+    
+    TMAN_TaskRegisterAttributes('A',1,2,3);
+        
+    vTaskStartScheduler();
+    
    
 	return 0;
 }

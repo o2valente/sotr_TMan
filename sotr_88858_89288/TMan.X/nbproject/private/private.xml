@@ -9,8 +9,9 @@
             <file>file:/C:/E/Dev/FreeRTOS/WorkingCopy/FreeRTOS/Demo/PIC32MX_MPLAB/main_full.c</file>
         </group>
         <group>
-            <file>file:/home/valente/Documents/uni/ano5s1/sotr/FreeRTOSv202107.00/FreeRTOS/Demo/Guide_A4/main.c</file>
-            <file>file:/home/valente/Documents/uni/ano5s1/sotr/FreeRTOSv202107.00/FreeRTOS/Demo/Guide_A4/mainA4.c</file>
+            <file>file:/home/valente/Documents/uni/ano5s1/sotr/FreeRTOSv202107.00/FreeRTOS/Demo/sotr_88858_89288/TMan.h</file>
+            <file>file:/home/valente/Documents/uni/ano5s1/sotr/FreeRTOSv202107.00/FreeRTOS/Demo/sotr_88858_89288/TMan.c</file>
+            <file>file:/home/valente/Documents/uni/ano5s1/sotr/FreeRTOSv202107.00/FreeRTOS/Demo/sotr_88858_89288/mainTMan.c</file>
         </group>
     </open-files>
 </project-private>

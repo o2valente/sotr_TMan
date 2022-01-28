@@ -17,6 +17,8 @@
       </logicalFolder>
       <itemPath>../../PIC32MX_ChipKitLedBlink/FreeRTOSConfig.h</itemPath>
       <itemPath>../../UART/uart.h</itemPath>
+      <itemPath>../ConfigPerformance.h</itemPath>
+      <itemPath>../TMan.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -38,10 +40,8 @@
       </logicalFolder>
       <itemPath>../../UART/uart.c</itemPath>
       <itemPath>../ConfigPerformance.c</itemPath>
-      <itemPath>../ConfigPerformance.h</itemPath>
       <itemPath>../main.c</itemPath>
       <itemPath>../TMan.c</itemPath>
-      <itemPath>../TMan.h</itemPath>
       <itemPath>../mainTMan.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"

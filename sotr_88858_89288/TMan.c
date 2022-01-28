@@ -2,11 +2,14 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include <xc.h>
+
 /* Hardware specific includes. */
 #include "ConfigPerformance.h"
 
 #include "TMan.h"
 
+/* Standard includes. */
 #include <stdio.h>
 #include <string.h>
 
@@ -14,6 +17,8 @@
 #include "../UART/uart.h"
 
 #define tsk_PRIORITY	( tskIDLE_PRIORITY + 1 )
+#define tics_PRIORITY	( tskIDLE_PRIORITY + 3 )
+
 
 struct TMan_task tasks[6];
 int maxTasks;
@@ -50,12 +55,14 @@ void TMAN_Init (int numOfTasks) {
     AD1CON1bits.ON = 1; // Enable A/D module (This must be the ***last instruction of configuration phase***)
     
     /* Welcome message*/
-    printf("\n\n *********************************************\n\r");
+    printf("\n\n*********************************************\n\r");
     printf("Initializing the TMAN Framework \n\r");
     printf("*********************************************\n\r");
     
     maxTasks = numOfTasks;
     taskIndex = 0;
+    
+    xTaskCreate ( TMAN_getTicks , ( const signed char * const ) "Get Tics", configMINIMAL_STACK_SIZE, NULL, tics_PRIORITY, NULL);
     
     
 }
@@ -63,18 +70,40 @@ void TMAN_Init (int numOfTasks) {
 void TMAN_TaskAdd(char name){
     if(taskIndex < maxTasks){
         tasks[taskIndex].name = name;
-        xTaskCreate( pvBusyWait, ( const signed char * const ) name, configMINIMAL_STACK_SIZE, NULL, tsk_PRIORITY, NULL );
-        printf("Task %c created!", tasks[taskIndex].name);
+        xTaskCreate( BusyWait, ( const signed char * const ) "Busy Wait", configMINIMAL_STACK_SIZE, NULL, tsk_PRIORITY, NULL );
+        printf("Task %c created!\n\r", tasks[taskIndex].name);
         taskIndex++;
     }else{
-        printf("Task can not be created, max number %d of tasks created", maxTasks);
+        printf("Task can not be created, max number %d of tasks created\n\r", maxTasks);
     }
 }
 
-void pvBusyWait(void *pvParam){
+void TMAN_TaskRegisterAttributes (char name, int period, int phase, int deadline) {
+    for (int i=0; i < maxTasks; i++){
+        if(tasks[i].name == name){
+            tasks[i].period = period;
+            tasks[i].phase = phase;
+            tasks[i].deadline = deadline;    
+            printf("Attributes period:%d , phase:%d , deadline:%d attributed to Task %c\n\r", tasks[i].period, tasks[i].phase, tasks[i].deadline, tasks[i].name);
+        }
+    
+    }
+    
+}
+
+void TMAN_getTicks(void *pvParams){
+    TickType_t xLastWakeTime;
+    xLastWakeTime = xTaskGetTickCount();
+    for(;;){
+        vTaskDelayUntil( &xLastWakeTime, 5);
+        printf("Tics: %d\n", xLastWakeTime);
+    }
+}
+
+
+void BusyWait(void *pvParams){
     uint8_t mesg[80];
-    int val = 0;
-    int result = 0;
+    printf("Busy Wait");
     
    // for(;;){
      //   TMAN_TaskWaitPeriod(args ?); // Add args if needed
