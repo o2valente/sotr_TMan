@@ -13,20 +13,23 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <semphr.h>
+
 /* App includes */
 #include "../UART/uart.h"
 
 /* Priorities of the demo application tasks (high numb. -> high prio.) */
-#define tsk_PRIORITY	( tskIDLE_PRIORITY + 1 )
-#define tics_PRIORITY	( tskIDLE_PRIORITY + 3 )
+#define tsk_PRIORITY	( tskIDLE_PRIORITY + 2 )
+#define tics_PRIORITY	( tskIDLE_PRIORITY + 1 )
 
-#define TMan_PERIOD 10
+#define TMan_PERIOD 1000
 
 
 struct TMan_task tasks[6];
 int maxTasks;
 int taskIndex;
 TickType_t TMan_tick;
+QueueHandle_t xQueue_msg;
 
 
 void TMAN_Init (int numOfTasks) {
@@ -69,15 +72,17 @@ void TMAN_Init (int numOfTasks) {
     
     printf("Creating getTicks Task\n\r");
     xTaskCreate ( TMAN_getTicks , ( const signed char * const ) "Get Tics", configMINIMAL_STACK_SIZE, NULL, tics_PRIORITY, NULL);
+    xQueue_msg = xQueueCreate(maxTasks*5,sizeof(char)*80 );
 
     
 }
 
 void TMAN_TaskAdd(const char* name){
+     
     if(taskIndex < maxTasks){
         tasks[taskIndex].name = name;
-        xTaskCreate( BusyWait, ( const signed char * const ) name, configMINIMAL_STACK_SIZE,(void *) name, tsk_PRIORITY, NULL );
-        printf("Task %c created!\n\r", tasks[taskIndex].name);
+        xTaskCreate( BusyWait, ( const signed char * const ) name, configMINIMAL_STACK_SIZE,(void *) &tasks[taskIndex], tsk_PRIORITY, NULL );
+        printf("Task %s created!\n\r", tasks[taskIndex].name);
         taskIndex++;
         
     }else{
@@ -85,12 +90,15 @@ void TMAN_TaskAdd(const char* name){
     }
 }
 
-void TMAN_TaskRegisterAttributes (const char* name, int period, int phase, int deadline) {
+void TMAN_TaskRegisterAttributes (const char* name, int period, int phase, int deadline, int next_activ) {
     for (int i=0; i < maxTasks; i++){
         if(tasks[i].name == name){
             tasks[i].period = period;
             tasks[i].phase = phase;
-            tasks[i].deadline = deadline;    
+            tasks[i].current_a=phase;
+            tasks[i].deadline = deadline+phase;
+            tasks[i].deadline_count=0;
+            tasks[i].next_a= phase;
             printf("Attributes period:%d , phase:%d , deadline:%d attributed to Task %c\n\r", tasks[i].period, tasks[i].phase, tasks[i].deadline, tasks[i].name);
         }
     
@@ -98,35 +106,99 @@ void TMAN_TaskRegisterAttributes (const char* name, int period, int phase, int d
     
 }
 
+void TMAN_TaskWaitPeriod(void){
+    const char* name = pcTaskGetName(xTaskGetCurrentTaskHandle());
+    for(int i=0;i<maxTasks;i++){
+        if(tasks[i].name == name ){
+            if(TMan_tick>tasks[i].current_a+tasks[i].deadline){
+                tasks[i].deadline_count++;
+//                tasks[i].deadline_A = tasks[i].deadline_A+tasks[i].period;
+            }
+        }
+    }
+    vTaskSuspend(NULL);
+
+}
+
 void TMAN_getTicks(void *pvParams){
     TickType_t xLastWakeTime;
     xLastWakeTime = xTaskGetTickCount();
-    for(;;){
-        vTaskDelayUntil( &xLastWakeTime, TMan_PERIOD);
-        TMan_tick++; 
-    }   
+    for(;;){//        printf("%d", TMan_tick);
+        
+        
+        for(int i=0;i<maxTasks;i++){
+            
+            if(TMan_tick>=tasks[i].next_a && TMan_tick <= (tasks[i].next_a+tasks[i].deadline)){ //pode executar
+//          printf("%s", tasks[i].name);
+                TaskHandle_t handle = xTaskGetHandle(tasks[i].name);
+
+                tasks[i].current_a=tasks[i].next_a;
+
+                tasks[i].next_a=tasks[i].next_a+tasks[i].period;
+
+
+                vTaskResume(handle);
+            }
+//            else{
+//                tasks[i].next_a=tasks[i].next_a+tasks[i].period;
+//                tasks[i].current_a=tasks[i].next_a;
+//
+//                
+//                tasks[i].deadline_count++;
+//            }
+                
+        }
+        vTaskDelayUntil( &xLastWakeTime, 1);
+        TMan_tick++;
+    }
+        
+
+        
+
 }
 
 void TMAN_Close(void){
     vTaskEndScheduler();
 }
 
+
+
+void printTask(void *pvParam){
+    char mesg[80];
+    
+    TickType_t xLastWakeTime;
+    for(;;){
+        if( xQueue_msg != NULL ){
+            for(;;) {            
+               if( xQueueReceive( xQueue_msg,mesg,portMAX_DELAY ) == pdPASS ){
+                   PrintStr(mesg);
+               }
+            }        
+        }
+    }
+}
+
 void BusyWait(void *pvParams){
     uint8_t mesg[80];
-    
+    char mensagem[80];
+    TMan_task * task = (TMan_task *) pvParams;
     for(;;){
+        TMAN_TaskWaitPeriod();
         TickType_t tic = xTaskGetTickCount();
-        printf("%s, %d\n\r",(const char*) pvParams, tic);
+        sprintf(mensagem,"name:%s, deadlines:%d , tic:%d, \n\r", task->name, task->deadline_count, tic);
+        if( xQueueSend(xQueue_msg, mensagem, 10) != pdPASS ) { }
+        //printf("%s, %d\n\r",(const char*) pvParams, tic);
+        
     }
     
-   // for(;;){
-     //   TMAN_TaskWaitPeriod(args ?); // Add args if needed
-       // GET_TICKS
-       // print ?Task Name? and ?Ticks?
-       // for(i=0; i<IMAXCOUNT; i++)
-       // for(j=0; j<JMAXCOUNT; j++)
-       // do_some_computation_to_consume_time;
-       // OTHER_STUFF (if needed)
+//    for(;;){
+//        for(int i=0; i<IMAXCOUNT; i++){
+//            for(int j=0; j<JMAXCOUNT; j++){
+//                TickType_t tic = xTaskGetTickCount();
+//                printf("%s, %d\n\r",(const char*) pvParams, tic);
+//            }
+//        }
+//    }
 }
     
 
