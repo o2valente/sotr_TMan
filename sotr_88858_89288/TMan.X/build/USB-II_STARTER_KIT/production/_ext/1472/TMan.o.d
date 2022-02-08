@@ -5,7 +5,8 @@ build/USB-II_STARTER_KIT/production/_ext/1472/TMan.o: ../TMan.c \
  ../../../Source/portable/MPLAB/PIC32MX/portmacro.h \
  ../../../Source/include/mpu_wrappers.h ../../../Source/include/task.h \
  ../../../Source/include/list.h ../ConfigPerformance.h ../TMan.h \
- ../../UART/uart.h
+ ../../../Source/include/semphr.h ../../../Source/include/queue.h \
+ ../../../Source/include/task.h ../../UART/uart.h
 
 ../../../Source/include/FreeRTOS.h:
 
@@ -28,5 +29,11 @@ build/USB-II_STARTER_KIT/production/_ext/1472/TMan.o: ../TMan.c \
 ../ConfigPerformance.h:
 
 ../TMan.h:
+
+../../../Source/include/semphr.h:
+
+../../../Source/include/queue.h:
+
+../../../Source/include/task.h:
 
 ../../UART/uart.h:

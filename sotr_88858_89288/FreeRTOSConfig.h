@@ -49,7 +49,7 @@
 #define configTICK_RATE_HZ						( ( TickType_t ) 1000 )
 #define configCPU_CLOCK_HZ						( 80000000UL )
 #define configPERIPHERAL_CLOCK_HZ				( 40000000UL )
-#define configMAX_PRIORITIES					( 5UL )
+#define configMAX_PRIORITIES					( 6UL )
 #define configMINIMAL_STACK_SIZE				( 190 )
 #define configISR_STACK_SIZE					( 250 )
 #define configTOTAL_HEAP_SIZE					( ( size_t ) 28000 )
